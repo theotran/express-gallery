@@ -25,23 +25,21 @@
 //to run seeds do sequelize seed:create
 
 var express = require('express');
-
 var app = express();
-
 var db = require('./models');
 //db.Gallery is what you find in the models/gallery.js
 var Gallery = db.Gallery;
-
+var passport = require('passport');
+var BasicStrategy = require('passport-http').BasicStrategy;// Want to use Basic Authentication Strategy
 //npm install -S body-parser
 var bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extended: false}));
 
+
+app.use(bodyParser.urlencoded({extended: false}));
 //Tell Express which Template engine we are using by NPM module name
 app.set('view engine', 'jade');
-
 //tell express where our template files live
 app.set('views', 'views');
-
 //tells express where the public files are located
 app.use(express.static('public'));
 
@@ -50,9 +48,23 @@ app.use(express.static('public'));
 var methodOverride = require('method-override');
 app.use(methodOverride('_method'));
 
-
 var morgan = require('morgan');
 app.use (morgan('dev'));
+
+
+// Other middleware
+
+var user = { username: 'theotran', password: 'secret', email: 'theotran@rocketmail.com' };
+passport.use(new BasicStrategy(
+  function(username, password, done) {
+    // Example authentication strategy using 
+    if ( !(username === user.username && password === user.password) ) {
+      return done(null, false);
+    }
+    return done(null, user);
+}));
+
+
 
 //getting the delete form
 app.get('/delete/:id', function (req, res) {
@@ -76,23 +88,26 @@ app.delete('/gallery/:id', function (req, res) {
 
 //edit/put
 //test it out! http://localhost:8080/delete/15
-app.put('/gallery/:id', function (req, res) {
-  
-  var newValues = {
-    author: req.body.author,
-    link: req.body.link,
-    description: req.body.description
-  };
+//line 93 adds an authentication
+app.put('/gallery/:id', 
+  passport.authenticate('basic', { session: false }),
+  function (req, res) {
+    var newValues = {
+      author: req.body.author,
+      link: req.body.link,
+      description: req.body.description
+    };
 
-  var query = { 
-    where: {id: req.params.id},
-    returning: true 
-  };
-  Gallery.update (newValues, query)
-    .then(function (gallery) {
-      res.send(gallery);
-  });
+    var query = { 
+      where: {id: req.params.id},
+      returning: true 
+    };
+    Gallery.update (newValues, query)
+      .then(function (gallery) {
+        res.send(gallery);
+    });
 });
+  
 
 app.delete('/', function (req, res) {
   res.send('PUT REQUEST');
@@ -120,8 +135,11 @@ app.get('/', function (req, res) {
 });
 
 //this is how you render your jade file with the form!!!
-app.get('/gallery/new', function (req, res) {
-  res.render('new_photo', {});
+//also creating authentication for when you visit this page
+app.get('/gallery/new',
+  passport.authenticate('basic', { session: false }),
+  function (req, res) {
+    res.render('new_photo', {});
 });
 
 //':' represents a variable that maps to in this case params, with the same name
