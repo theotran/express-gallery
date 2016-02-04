@@ -67,9 +67,12 @@ passport.use(new BasicStrategy(
 
 
 //getting the delete form
-app.get('/delete/:id', function (req, res) {
-  var id = req.params.id;
-  res.render('delete_form', {id:id});
+//test it out http://localhost:8080/gallery/4/edit
+app.get('/gallery/:id/edit',
+  passport.authenticate('basic', { session: false }), 
+  function (req, res) {
+    var id = req.params.id;
+    res.render('delete_form', {id:id});
 });
 
 //method override to delete
@@ -86,11 +89,10 @@ app.delete('/gallery/:id', function (req, res) {
   });
 });
 
+
 //edit/put
 //test it out! http://localhost:8080/delete/15
-//line 93 adds an authentication
 app.put('/gallery/:id', 
-  passport.authenticate('basic', { session: false }),
   function (req, res) {
     var newValues = {
       author: req.body.author,
@@ -134,6 +136,12 @@ app.get('/', function (req, res) {
   });
 });
 
+app.get('/logout', function (req, res) {
+  req.logout();
+  res.removeHeader('Authorization');
+  res.redirect('/');
+});
+
 //this is how you render your jade file with the form!!!
 //also creating authentication for when you visit this page
 app.get('/gallery/new',
@@ -144,16 +152,16 @@ app.get('/gallery/new',
 
 //':' represents a variable that maps to in this case params, with the same name
 //test this out by using postman, type http://localhost:8080/gallery/2
-app.get('/gallery/:id', function (req, res) {
-  Gallery.find({
-    where: {
-      id: req.params.id
-    }
-  })
-  .then(function (gallery) {
-    res.json(gallery);
-  });
-});
+// app.get('/gallery/:id', function (req, res) {
+//   Gallery.find({
+//     where: {
+//       id: req.params.id
+//     }
+//   })
+//   .then(function (gallery) {
+//     res.json(gallery);
+//   });
+// });
 
 
 
