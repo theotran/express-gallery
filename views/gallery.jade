@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+html(lang="en")
+head
+  meta(charset="UTF-8")
+  title Picture Gallery
+                        //- / means looks at my public folder absolute
+  link(rel="stylesheet", href="/styles/styles.css")
+body
+  //- photo is like var i
+  each photo in galleries
+    div
+      img(src=photo.link)
+      p= photo.id
+      p= photo.description

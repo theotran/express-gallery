@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+html(lang="en")
+head
+  meta(charset="UTF-8")
+  title Document
+body
+  h1 EDIT #{name}
+  form(method="post", action="/gallery/#{id}?_method=PUT", enctype="application/x-www/form-urlencoded")
+
+    h2 Author
+    input(type="text" name="author")
+    h2 Link
+    input(type="text" name="link")
+    h2 Description
+    input(type="text" name="desciption")
+    input(type="submit" value="EDIT gallery/#{id}")
+    
+  h1 Delete Photo
+  form(method="POST", action="/gallery/#{id}?_method=DELETE")
+    input(type="submit" value="DELETE gallery/#{id}")

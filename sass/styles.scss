@@ -1,0 +1,7 @@
+// MEDIA QUERY RANGES runs a boolean check which triggers when its true
+$medium: "only screen and (min-width:600px)";
+$large: "only screen and (min-width:900px)";
+
+body {
+  background-color: blue;
+}
