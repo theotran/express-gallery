@@ -38,12 +38,17 @@ var localStrategy = require('passport-local').Strategy;
 var bodyParser = require('body-parser');//npm install -S body-parser
 var session = require('express-session');
 var CONFIG = require('./config.json');
+var isAuthenticated = require('./middleware/isAuthenticated');//1 dot because the file we are in is in the root as well
+var User = db.User;
+
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('view engine', 'jade');//Tell Express which Template engine we are using by NPM module name
 app.set('views', 'views');//tell express where our template files live
 app.use(express.static('public'));//tells express where the public files are located
 
+//whenever gallery is queried, it will point to galleryRouter, galleryRouter.js will handle everything thats relevant to gallery
+app.use('/gallery', require('./routers/galleryRouter'));
 
 //since html5 only knows about post and get
 // we use middleware which allows us to put and delete
@@ -58,13 +63,33 @@ app.use(session(CONFIG.SESSION));
 app.use(passport.initialize());
 app.use(passport.session());
 
+// passport.use(new localStrategy(
+//   function (username, password, done) {
+//     console.log(username, password);
+//     if (!authenticate(username, password)) {
+//       return done(null, false);//1st param (no error)...2nd param (no this wasnt good credentials, falsey failed redirect)
+//     }
+//     return done(null, {});//2nd param means (truthy successful redirect)
+// }));
+
+//by doing it this way we are now referring to the user in the database, like in user-seeder.js
 passport.use(new localStrategy(
   function (username, password, done) {
-    console.log(username, password);
-    if (!authenticate(username, password)) {
-      return done(null, false);//1st param (no error)...2nd param (no this wasnt good credentials, falsey failed redirect)
-    }
-    return done(null, {});//2nd param means (truthy successful redirect)
+    User.find({
+      where: {
+        username: username
+      }
+    }).
+    then(function (user) {
+      //if no user found
+      if (!user) {//not authenticated
+        return done(null, false);
+      }
+      //if user is found
+      if (user.password === password) {
+        return done(null, user);//authenticated
+      }
+    });
 }));
 
 
@@ -98,12 +123,12 @@ function authenticate (username, password) {
           password === PASSWORD);
 }
 
-function isAuthenticated (req, res, next) {
-  if (!req.isAuthenticated()) {
-    return  res.redirect('/login');
-  }
-  return next();
-}
+// function isAuthenticated (req, res, next) {
+//   if (!req.isAuthenticated()) {
+//     return  res.redirect('/login');
+//   }
+//   return next();
+// }
 
 //getting the delete form
 //test it out http://localhost:8080/gallery/60/edit
@@ -113,13 +138,7 @@ app.get('/gallery/:id/edit',
     var id = req.params.id;
     res.render('delete_form', {id:id});
 });
-//same thing just making a different path
-app.get('/edit',
-  isAuthenticated,
-  function (req, res) {
-    var id = req.params.id;
-    res.render('delete_form', {id:id});
-});
+
 
 //method override to delete
 //test it out! localhost:8080/gallery/60/edit
