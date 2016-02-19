@@ -1,3 +1,6 @@
+//basically creating a database. then using express...it just depends what drives you :)
+//we then added some shine to it with things like authentication to login etc...
+
 //creating a table (type in command line)
 //sequelize model:create --name Gallery --attributes author:string,link:string,description:string
 
@@ -51,7 +54,7 @@ app.use(express.static('public'));//tells express where the public files are loc
 app.use('/gallery', require('./routers/galleryRouter'));
 
 //since html5 only knows about post and get
-// we use middleware which allows us to put and delete
+// we use middleware (method-override) which allows us to put and delete   
 var methodOverride = require('method-override');
 app.use(methodOverride('_method'));
 
@@ -63,14 +66,6 @@ app.use(session(CONFIG.SESSION));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// passport.use(new localStrategy(
-//   function (username, password, done) {
-//     console.log(username, password);
-//     if (!authenticate(username, password)) {
-//       return done(null, false);//1st param (no error)...2nd param (no this wasnt good credentials, falsey failed redirect)
-//     }
-//     return done(null, {});//2nd param means (truthy successful redirect)
-// }));
 
 //by doing it this way we are now referring to the user in the database, like in user-seeder.js
 passport.use(new localStrategy(
@@ -123,12 +118,12 @@ function authenticate (username, password) {
           password === PASSWORD);
 }
 
-// function isAuthenticated (req, res, next) {
-//   if (!req.isAuthenticated()) {
-//     return  res.redirect('/login');
-//   }
-//   return next();
-// }
+function isAuthenticated (req, res, next) {
+  if (!req.isAuthenticated()) {
+    return  res.redirect('/login');
+  }
+  return next();
+}
 
 //getting the delete form
 //test it out http://localhost:8080/gallery/60/edit

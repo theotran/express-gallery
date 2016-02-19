@@ -4,6 +4,8 @@ var isAuthenticated = require('../middleware/isAuthenticated');//2 dots (../) be
 
 var db = require('../models');
 var Gallery = db.Gallery;
+
+console.log(isAuthenticated);    
 //this is the same as /gallery
 router.route('/')
   .post(function (req, res) {
@@ -21,4 +23,19 @@ router.route('/')
       });
   });
 
+// router.route('/new')
+//   .get(isAuthenticated, 
+//     function (req, res, next) {
+    
+//     res.render('new_photo', {});
+//   });
+  
+  
 module.exports = router;
+
+
+
+
+
+
+
