@@ -37,11 +37,11 @@ var app = express();
 var db = require('./models');
 var Gallery = db.Gallery;//db.Gallery is what you find in the models/gallery.js
 var passport = require('passport');
-var localStrategy = require('passport-local').Strategy;
+var localStrategy = require('passport-local').Strategy;//if you want to store username and password that you have instead of using tokens from somewhere else like facebook
 var bodyParser = require('body-parser');//npm install -S body-parser
-var session = require('express-session');
+var session = require('express-session');//handles cookies etc...
 var CONFIG = require('./config.json');
-var isAuthenticated = require('./middleware/isAuthenticated');//1 dot because the file we are in is in the root as well
+// var isAuthenticated = require('./middleware/isAuthenticated');//1 dot because the file we are in is in the root as well
 var User = db.User;
 
 
@@ -67,7 +67,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
+
 //by doing it this way we are now referring to the user in the database, like in user-seeder.js
+//username: Teotran password: password. since we made our user in the db 
+//postgres
 passport.use(new localStrategy(
   function (username, password, done) {
     User.find({
@@ -78,10 +81,12 @@ passport.use(new localStrategy(
     then(function (user) {
       //if no user found
       if (!user) {//not authenticated
+        
         return done(null, false);
       }
       //if user is found
       if (user.password === password) {
+        console.log("hooray!");
         return done(null, user);//authenticated
       }
     });
@@ -96,7 +101,6 @@ passport.deserializeUser(function (user, done) {
   return done(null, user);
 });
 
-app.use(passport.initialize());
 
 app.get('/login', function (req, res) {
   res.render('login');
@@ -159,7 +163,6 @@ app.put('/gallery/:id',
       link: req.body.link,
       description: req.body.description
     };
-
     var query = { 
       where: {id: req.params.id},
       returning: true 
@@ -175,6 +178,7 @@ app.delete('/', function (req, res) {
   res.send('PUT REQUEST');
 });
 
+//creating a new 
 app.post('/gallery', function (req, res) {
   Gallery.create({
     //where theres an "author" this will be the value
@@ -187,7 +191,7 @@ app.post('/gallery', function (req, res) {
   });
 });
 
-app.get('/', function (req, res) {
+app.get('/', isAuthenticated, function (req, res) {
   Gallery.findAll()
   .then(function (gallery) {
     //res.json(gallery);
@@ -230,7 +234,7 @@ app.get('/gallery/:id', function (req, res) {
 
 
 
-app.listen(8080, function () {
+app.listen(3000, function () {
   db.sequelize.sync();
 });
 
